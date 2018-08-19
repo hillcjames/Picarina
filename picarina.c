@@ -66,6 +66,15 @@ int main(int argc, char **argv) {
 		playNote(soundPipe, B4);
 		playNote(soundPipe, C5);
 
+		playNote(soundPipe, A4);
+		playNote(soundPipe, B4);
+		playNote(soundPipe, C5);
+
+		playNote(soundPipe, A4);
+		playNote(soundPipe, B4);
+		playNote(soundPipe, C5);
+
+		
 		printf("Child done.");
 		cleanUp();
 
@@ -206,20 +215,18 @@ int main(int argc, char **argv) {
 void playNote(int * soundPipe, int pitchEnum) {
 	Tone * tone = &tones->tones[pitchEnum];
 
-	//Oh it's so beautiful
-	// I love it
-	int chunkSize = 128;
+	int chunkSize = 512;
 	int i, i2;
 	// extend or shorten this loop in order to get rid of skips while
 	//minimizing extra note-time beyond button release.
 	for (i = 0; i < 1; i++ ) {
 
 		int dataRemaining = tone->sz;
-		for (i2 = 0; i2 + chunkSize < tone->sz; i2+=chunkSize ) {
+		for (i2 = 0; i2 + chunkSize <= tone->sz; i2+=chunkSize ) {
 			write(soundPipe[1], &(tone->data[i2]), chunkSize);
 			dataRemaining -= chunkSize;
 		}
-		write(soundPipe[1], &(tone->data[i2]), dataRemaining);
+		write(soundPipe[1], &(tone->data[i2]), dataRemaining-2);
 
 	}
 }
