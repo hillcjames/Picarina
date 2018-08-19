@@ -33,8 +33,6 @@
 
 #define PCM_DEVICE "default"
 
-//import array of tone data - short.
-//
 
 int main(int argc, char **argv) {
 
@@ -59,121 +57,56 @@ int main(int argc, char **argv) {
 		too long and you'll get a backup in the buffer, too short and I bet
 		there'll be gaps.
 		*/
-
-		// sleep(1);
-		// char msg[] = { "Can you hear me now?\n" };
-//        char msg[] = { "Hi\n" };
-		// close(soundPipe[0]);
-        // write(soundPipe[1], msg, sizeof msg);
-        // char cdone[] = "Child now exiting ...\n";
-        // write(1, cdone, sizeof cdone);
-
 		close(soundPipe[0]);
 
-		// char * garbage = calloc(8, 128);
-	    // read(0, garbage, 44);
-		// // printf("%s\n", garbage);
-		// free(garbage);
+		// buildPitchList();
+		createToneList();
 
-		// char * soundBuffer = (char *)calloc(sizeof(char), 4096*256);
+		playNote(soundPipe, A4);
+		playNote(soundPipe, B4);
+		playNote(soundPipe, C5);
+
+		printf("Child done.");
+		cleanUp();
+
+
+
 
 		//any input data must be shorter than this
-		long dataSize = 4096 * 64;
-		char * soundData = (char *)calloc(sizeof(char), dataSize);
-		// int f = open("./txt", O_RDONLY);
-		printf("opening\n");
-		int f = open("./tones/F4.wav", O_RDONLY);
-		printf("done opening\n");
-
-		//might try using an actual byte datatype - it looks like read 260
-		//reads 2340, and I need it to read 2348: chunks of 8 not 9.. why on earth
-		//is it chunks of 9?
-		//and that's only to get an even multiple of 4096 - it's probably not
-		//going to work anyway
-		//let's assume I need chunks of 4, to get to the mentioned 44 byte mark.
-
-		int * garbage = calloc(1, 4096);
-	    int sz1 = read(f, garbage, 44);
-		printf("%s\n", (char*)garbage);
-		free(garbage);
-		printf("%d\n", sz1);
-
-		int sz = read(f, soundData, dataSize);
-
-
-		//Oh it's so beautiful
-		// I love it
-		int chunkSize = 1024;
-		int i, i2;
-		// extend or shorten this loop in order to get rid of skips while
-		//minimizing extra note-time beyond button release.
-		for (i = 0; i < 10; i++ ) {
-
-			int dataRemaining = sz;
-			for (i2 = 0; i2 < sz; i2+=chunkSize ) {
-				if ( dataRemaining >= chunkSize ) {
-					write(soundPipe[1], &(soundData[i2]), chunkSize);
-				}
-				else {
-					write(soundPipe[1], &(soundData[i2]), dataRemaining);
-				}
-				dataRemaining -= chunkSize;
-			}
-
-			//skips
-			// char * iter = soundData;
-			// // for (i2 = 0; i2 < sz/chunkSize; i2++) {
-			// while(iter < soundData + sz/chunkSize) {
-			// 	// int sz = read(f, soundData, 4096);
-			// 	_4096bit* tmp = iter;
-			// 	printf("%d\n", sizeof(tmp));
-			// 	printf("%p %p   %p\n", tmp, iter, iter-tmp);
-			// 	write(soundPipe[1], tmp, 256); //works, but wrong pitch??
-			// 	iter++;
-			// }
-
-
-			//skips
-			// _4096byte* iter = start;
-			// _4096byte* tmp;
-			// // for (i2 = 0; i2 < sz/chunkSize; i2++) {
-			// while(iter < start + sz/chunkSize) {
-			// 	// printf("%p\n", iter);
-			// 	// int sz = read(f, soundData, 4096);
-			//
-			// 	// int i3;
-			// 	// for (i3 = 0; i3 < 4096; i3++ ) {
-			// 	// 	// printf("\t%x\n", iter->buf[i3]);
-			// 	// 	// int l = 0;
-			// 	// 	// for (l = 0; l < 8; l++) {
-			// 	// 		// printf("\t\t");
-			// 	// 		// int l2;
-			// 	// 		// for (l2 = 0; l2<(iter->buf[i3] & (1<<l)); l2++) {
-			// 	// 		// 	printf(" ");
-			// 	// 		// }
-			// 	// 		// printf("%d \n", iter->buf[i3] & (1<<l));
-			// 	// 	// }
-			// 	// 	write(soundPipe[1], &(iter->buf[i3]), 1);
-			// 	// }
-			// 	tmp = iter;
-			// 	// printf("%d\n", sizeof(tmp));
-			// 	// printf("%p %p   %p\n", tmp, iter, iter-tmp);
-			// 	write(soundPipe[1], tmp, 4096); //works, but wrong pitch??
-			// 	iter++;
-			// }
-
-			//old
-			// write(soundPipe[1], (char*)iter, sz%chunkSize);
-			// int sz = -1;
-			// while(sz != 0) {
-			// 	sz = read(f, soundBuffer, 4096*256);
-			// 	// printf("%d\n", sz);
-			// 	write(soundPipe[1], soundBuffer, sz);
-			// 	// printf("..\n");
-			// }
-		}
-		printf("Child done.");
-		free(soundData);
+		// long dataSize = 4096 * 64;
+		// char * soundData = (char *)calloc(sizeof(char), dataSize);
+		//
+		// printf("opening\n");
+		//
+		// int f = open("./tones/F4.wav", O_RDONLY);
+		//
+		// int * garbage = calloc(1, 4096);
+	    // int sz1 = read(f, garbage, 44);
+		// printf("%s\n", (char*)garbage);
+		// free(garbage);
+		// printf("%d\n", sz1);
+		//
+		// int sz = read(f, soundData, dataSize);
+		//
+		//
+		// //Oh it's so beautiful
+		// // I love it
+		// int chunkSize = 512;
+		// int i, i2;
+		// // extend or shorten this loop in order to get rid of skips while
+		// //minimizing extra note-time beyond button release.
+		// for (i = 0; i < 10; i++ ) {
+		//
+		// 	int dataRemaining = sz;
+		// 	for (i2 = 0; i2 + chunkSize < sz; i2+=chunkSize ) {
+		// 		write(soundPipe[1], &(soundData[i2]), chunkSize);
+		// 		dataRemaining -= chunkSize;
+		// 	}
+		// 	write(soundPipe[1], &(soundData[i2]), dataRemaining);
+		//
+		// }
+		// printf("Child done.");
+		// free(soundData);
 		exit(0);
 	}
 	// now parent
@@ -253,50 +186,15 @@ int main(int argc, char **argv) {
 	loop continuously, reading from pipe whenever it has something.
 	Stop when the child stops. sighandler or whatever.
 	*/
-
-	// char pipe_buf[buff_size]; //less than the length of the input message
-	// char bread, pipe_buf[12]; //less than the length of the input message
-	// char csaid[] = "Child says: ";
-	// write(1, csaid, sizeof csaid);
-
-	// while ((bread = read(soundPipe[0], pipe_buf, sizeof pipe_buf)) > 0)
-	// 	write(1, pipe_buf, bread);
-	// exit(0);
-
-	// bool dunno = true;
-	// while (dunno) {
-	// for (loops = (seconds * 1000000) / tmp; loops > 0; loops--) {
-
 	while ((pcm = read(soundPipe[0], buff, buff_size)) > 0) {
-		// if (pcm = read(soundPipe[0], buff, buff_size) == 0) {
-		// 	fprintf(stderr, "Early end of file.\n");
-		// 	return 0;
-		// }
 		printf("..%" PRIu8 "\n", pcm);
 
 		if (pcm = snd_pcm_writei(pcm_handle, buff, frames) == -EPIPE) {
-			// printf("XRUN.\n");
 			snd_pcm_prepare(pcm_handle);
 		} else if (pcm < 0) {
 			fprintf(stderr, "ERROR. Can't write to PCM device. %s\n", snd_strerror(pcm));
 		}
 	}
-
-	//
-	// for (loops = (seconds * 1000000) / tmp; loops > 0; loops--) {
-	// 	if (pcm = read(0, buff, buff_size) == 0) {
-	// 		printf("Early end of file.\n");
-	// 		return 0;
-	// 	}
-	//
-	// 	if (pcm = snd_pcm_writei(pcm_handle, buff, frames) == -EPIPE) {
-	// 		printf("XRUN.\n");
-	// 		snd_pcm_prepare(pcm_handle);
-	// 	} else if (pcm < 0) {
-	// 		printf("ERROR. Can't write to PCM device. %s\n", snd_strerror(pcm));
-	// 	}
-	//
-	// }
 
 	snd_pcm_drain(pcm_handle);
 	snd_pcm_close(pcm_handle);
@@ -305,22 +203,25 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
+void playNote(int * soundPipe, int pitchEnum) {
+	Tone * tone = &tones->tones[pitchEnum];
 
+	//Oh it's so beautiful
+	// I love it
+	int chunkSize = 128;
+	int i, i2;
+	// extend or shorten this loop in order to get rid of skips while
+	//minimizing extra note-time beyond button release.
+	for (i = 0; i < 1; i++ ) {
 
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <alsa/asoundlib.h>
-// #include <alsa/pcm.h>
+		int dataRemaining = tone->sz;
+		for (i2 = 0; i2 + chunkSize < tone->sz; i2+=chunkSize ) {
+			write(soundPipe[1], &(tone->data[i2]), chunkSize);
+			dataRemaining -= chunkSize;
+		}
+		write(soundPipe[1], &(tone->data[i2]), dataRemaining);
+
+	}
+}
+
 //
-// int main() {
-//   int val;
-//
-//   printf("ALSA library version: %s\n", SND_LIB_VERSION_STR);
-//
-//   printf("\nPCM stream types:\n");
-//   for (val = 0; val <= SND_PCM_STREAM_LAST; val++)
-//     printf("  %s\n",
-//       snd_pcm_stream_name((snd_pcm_stream_t)val));
-//
-//   return 0;
-// }
