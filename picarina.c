@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <inttypes.h>
+// #include <wiringPi.h>
 
 #include "picarina.h"
 #include "tones.h"
@@ -59,69 +60,191 @@ int main(int argc, char **argv) {
 		*/
 		close(soundPipe[0]);
 
-		// buildPitchList();
 		createToneList();
 
-		playNote(soundPipe, A4);
-		playNote(soundPipe, B4);
-		playNote(soundPipe, C5);
+		inputLoop(soundPipe);
 
-		playNote(soundPipe, A4);
-		playNote(soundPipe, B4);
-		playNote(soundPipe, C5);
 
-		playNote(soundPipe, A4);
-		playNote(soundPipe, B4);
-		playNote(soundPipe, C5);
 
-		
 		printf("Child done.");
 		cleanUp();
 
-
-
-
-		//any input data must be shorter than this
-		// long dataSize = 4096 * 64;
-		// char * soundData = (char *)calloc(sizeof(char), dataSize);
-		//
-		// printf("opening\n");
-		//
-		// int f = open("./tones/F4.wav", O_RDONLY);
-		//
-		// int * garbage = calloc(1, 4096);
-	    // int sz1 = read(f, garbage, 44);
-		// printf("%s\n", (char*)garbage);
-		// free(garbage);
-		// printf("%d\n", sz1);
-		//
-		// int sz = read(f, soundData, dataSize);
-		//
-		//
-		// //Oh it's so beautiful
-		// // I love it
-		// int chunkSize = 512;
-		// int i, i2;
-		// // extend or shorten this loop in order to get rid of skips while
-		// //minimizing extra note-time beyond button release.
-		// for (i = 0; i < 10; i++ ) {
-		//
-		// 	int dataRemaining = sz;
-		// 	for (i2 = 0; i2 + chunkSize < sz; i2+=chunkSize ) {
-		// 		write(soundPipe[1], &(soundData[i2]), chunkSize);
-		// 		dataRemaining -= chunkSize;
-		// 	}
-		// 	write(soundPipe[1], &(soundData[i2]), dataRemaining);
-		//
-		// }
-		// printf("Child done.");
-		// free(soundData);
 		exit(0);
 	}
 	// now parent
 	close(soundPipe[1]);
 	// sleep(2);
 
+	playFromPipe(soundPipe);
+
+	return 0;
+}
+
+int buttonMask(int buttonNumber) {
+	return 1<<((buttonNumber - 2) * 4);
+}
+
+void inputLoop(int * soundPipe) {
+	// wiringPiSetup ();
+	// pinMode (b1, INPUT);
+	// pinMode (b2, INPUT);
+	// pinMode (b3, INPUT);
+	// pinMode (b4, INPUT);
+	//
+	// pullUpDnControl (b1, PUD_UP);
+	// pullUpDnControl (b2, PUD_UP);
+	// pullUpDnControl (b3, PUD_UP);
+	// pullUpDnControl (b4, PUD_UP);
+
+	int tonalButtons = 0;
+	int registerShift = 0;
+	bool inputGood = true;
+
+	int i;
+	int note;
+
+	while(inputGood) {
+	// for (i = 0; i < 200; i++) {
+		tonalButtons = 0;
+		registerShift = 0;
+		//this could probably be shortened by matching each digitalRead hard-coded
+		//value with a value in the buttons enum, so you could just iterate through them
+		//all. But this is clearer, and I'm betting this won't be a bottleneck.
+		// printf("%d\n", digitalRead(0));
+
+		//Well, as would be expected if I had thought through it, the loop executes
+		//faster than the note takes to play. Find some way to check if a note
+		//is already being played, and if so, don't send any new data.
+		//Shared memory is a thing apparently, and so a simple boolean would work.
+
+		//Note that this leads to something like tonalButtons == 0x1101 or 0x0010,
+		//where the rightmost byte/bit (only one bit is used) is b1, and the leftmost
+		//is b4.
+		// if (digitalRead(b1) == 0) { //lowest bit
+		// if (true) {
+		// 	tonalButtons |= buttonMask(b1);
+		// 	printf("_button 1!\n");
+		// 	// playNote(soundPipe, A4);
+		// }
+		// // if (digitalRead(b2) == 0) {
+		// if (false) {
+		// 	tonalButtons |= buttonMask(b2);
+		// 	printf("_button 2!\n");
+		// 	// playNote(soundPipe, B4);
+		// }
+		// // if (digitalRead(b3) == 0) {
+		// if (true) {
+		// 	tonalButtons |= buttonMask(b3);
+		// 	printf("_button 3!\n");
+		// 	// playNote(soundPipe, C5);
+		// }
+		// // if (digitalRead(b4) == 0) { //highest bit
+		// if (true) {
+		// 	tonalButtons |= buttonMask(b4);
+		// 	printf("_button 4!\n");
+		// 	// playNote(soundPipe, D5);
+		// }
+
+		for (i = b1; i <= b4; i++) {
+			// if (digitalRead(i) == 0) {
+			if (i % 3 != 1) {
+				tonalButtons |= buttonMask(i);
+				printf("button b%d\n", i-1);
+			}
+		}
+
+		//the shift, in half-steps or array indices, due to the register/octave
+		//buttons.
+		int t = 1;
+		if (t % 2 == 0) {
+		// if (digitalRead(O) == 0) {
+			registerShift += 12;
+		}
+		if (t % 3 == 0) {
+		// if (digitalRead(R) == 0) {
+			registerShift += 7;
+		}
+		if (t % 5 == 0) {
+		// if (digitalRead(r) == 0) {
+			registerShift -= 5;
+		}
+		if (t % 7 == 0) {
+		// if (digitalRead(o) == 0) {
+			registerShift -= 12;
+		}
+
+		if (tonalButtons%2 != 0) {
+			inputGood = false;
+		}
+		note = getNote(tonalButtons, registerShift);
+		// printf("___%d  %s\n", note, pitchString(note));
+		// printf("___%d  %d  | %s\n",  note, G4,  pitchString(note));
+		playNote(soundPipe, note);
+		inputGood = false;
+	}
+	return;
+}
+
+int getNote(int tonalButtons, int registerShift) {
+	//this returns the index of the note to be played,
+	//which comes out to be the number of half-steps above the lowest note.
+	//So start at the index for fully open, and decrease it first as the tonal
+	//buttons are pressed, and then decrease or increase that value by 8/12 for
+	//the registers/octave buttons, respectively.
+	//middleC
+	int note = G4 + registerShift;
+	printf("%x  |  %d   %s\n",  tonalButtons,  registerShift,  pitchString(note));
+
+	switch (tonalButtons) {
+		case 0x0000: // open - 			G if no registers pressed
+			break;
+		case 0x0010: // b2 - 			F# if no registers pressed
+			note -= 1;
+			break;
+		case 0x0001: // b1 - 			F if no registers pressed
+			note -= 2;
+			break;
+		case 0x0011: // b1, b2 - 		E if no registers pressed
+			note -= 3;
+			break;
+		case 0x0101: // b1, b2, b4 - 	Eb if no registers pressed
+			note -= 4;
+			break;
+		case 0x0111: // b1, b2, b3 - 	D if no registers pressed
+			note -= 5;
+			break;
+		case 0x1011: // all - 			C# if no registers pressed
+			note -= 6;
+			break;
+		case 0x1111: // all - 			C if no registers pressed
+			note -= 7;
+			break;
+	}
+
+	printf("%x  |  %d   %s\n",  tonalButtons,  registerShift,  pitchString(note));
+	return note;
+}
+
+void playNote(int * soundPipe, int pitchEnum) {
+	Tone * tone = &tones->tones[pitchEnum];
+
+	int chunkSize = 512;
+	int i, i2;
+	// extend or shorten this loop in order to get rid of skips while
+	//minimizing extra note-time beyond button release.
+	for (i = 0; i < 1; i++ ) {
+
+		int dataRemaining = tone->sz;
+		for (i2 = 0; i2 + chunkSize <= tone->sz; i2+=chunkSize ) {
+			write(soundPipe[1], &(tone->data[i2]), chunkSize);
+			dataRemaining -= chunkSize;
+		}
+		write(soundPipe[1], &(tone->data[i2]), dataRemaining - 2);
+
+	}
+}
+
+void playFromPipe(int * soundPipe) {
 	unsigned int pcm, tmp, dir;
 	int rate, channels, seconds;
 	snd_pcm_t *pcm_handle;
@@ -208,27 +331,6 @@ int main(int argc, char **argv) {
 	snd_pcm_drain(pcm_handle);
 	snd_pcm_close(pcm_handle);
 	free(buff);
-
-	return 0;
-}
-
-void playNote(int * soundPipe, int pitchEnum) {
-	Tone * tone = &tones->tones[pitchEnum];
-
-	int chunkSize = 512;
-	int i, i2;
-	// extend or shorten this loop in order to get rid of skips while
-	//minimizing extra note-time beyond button release.
-	for (i = 0; i < 1; i++ ) {
-
-		int dataRemaining = tone->sz;
-		for (i2 = 0; i2 + chunkSize <= tone->sz; i2+=chunkSize ) {
-			write(soundPipe[1], &(tone->data[i2]), chunkSize);
-			dataRemaining -= chunkSize;
-		}
-		write(soundPipe[1], &(tone->data[i2]), dataRemaining-2);
-
-	}
 }
 
 //

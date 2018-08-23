@@ -3,7 +3,7 @@ CC=gcc
 HEADERS = picarina.h tones.h
 
 default: picarina.c tones.c $(HEADERS)
-	gcc picarina.c tones.c $(HEADERS) -o pic -lasound
+	gcc picarina.c tones.c $(HEADERS) -o pic -lasound -lwiringPi
 
 
 clean:

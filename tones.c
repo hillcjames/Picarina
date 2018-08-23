@@ -28,21 +28,19 @@ void initTone(Tone * t, char * path) {
 
 
 void createToneList() {
-	numPitches = 36;
+	numPitches = 40;
 	tones = calloc(sizeof(ToneList), 1);
 	tones->sz = numPitches;
 	tones->tones = calloc(sizeof(Tone), tones->sz);
 
+	char * str = calloc(sizeof(char), 16);
 	int i;
 	for (i = 0; i < numPitches; i++ ) {
-		char * str = calloc(sizeof(char), 16);
 		sprintf(str, "./tones/%s.wav", pitchString(i));
 		printf("loading tone: \'%s\'\n", str);
 		initTone(&(tones->tones[i]), str);
 	}
-	// initTone(&(tones->tones[0]), "./tones/A4.wav");
-	// initTone(&(tones->tones[1]), "./tones/A#4.wav");
-	// initTone(&(tones->tones[2]), "./tones/F4.wav");
+	free(str);
 }
 
 void cleanUp() {
