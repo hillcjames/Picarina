@@ -30,4 +30,11 @@ enum buttons {
 	o   //to GPIO9				lower an octave
 };
 
+
+//shared buffer
+
+//lock
+
+//thread variable(s?)
+
 #endif
