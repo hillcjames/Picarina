@@ -30,6 +30,7 @@ enum buttons {
 	o   //to GPIO9				lower an octave
 };
 
+int getNote(int tonalButtons, int registerShift);
 
 //shared buffer
 
